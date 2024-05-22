@@ -4,7 +4,7 @@ class QuestionnaireApp:
     def __init__(self, master):
         self.master = master
         master.title("Questionário")
-        master.geometry("800x500")
+        master.geometry("800x600")
         master.configure(bg="#2C3E50")
 
         self.questions = [
@@ -24,7 +24,7 @@ class QuestionnaireApp:
             "Você gosta de veículos com sistema de som premium?",
             "Você valoriza a dirigibilidade esportiva em um carro?",
             "Você costuma fazer viagens longas com frequência?",
-            "Você prefere um carro com transmissão automática ou manual?",
+            "Você prefere um carro com transmissão manual?",
             "Você gostaria de um carro com teto solar?",
             "Você precisa de bastante espaço de carga no carro?",
             "Você costuma dirigir em estradas não pavimentadas?",
@@ -49,6 +49,12 @@ class QuestionnaireApp:
         self.result_label = ctk.CTkLabel(master, text="", font=("Helvetica", 18), text_color="white", bg_color="#2C3E50")
         self.result_label.pack(pady=20)
 
+        self.scrollable_frame = ctk.CTkScrollableFrame(master, width=780, height=250, fg_color="#2C3E50")
+        self.scrollable_frame.pack(padx=10, pady=10)
+
+        self.gabarito_text = ctk.CTkLabel(self.scrollable_frame, text="", font=("Helvetica", 12), text_color="white", bg_color="#2C3E50", justify="left", wraplength=750)
+        self.gabarito_text.pack(padx=10, pady=10)
+
     def get_question_text(self):
         return f"Pergunta {self.current_question_index + 1}: {self.questions[self.current_question_index]}"
 
@@ -68,33 +74,31 @@ class QuestionnaireApp:
             self.calculate_profile()
 
     def calculate_profile(self):
-        count_yes = sum([1 for response in self.responses.values() if response == "sim"])
+        eco_responses = [0, 2, 4, 6, 8, 10, 12, 14, 18, 20]  # Índices de perguntas relacionadas ao perfil Eco-Consciente
+        tech_responses = [5, 11, 13, 16, 17]  # Índices de perguntas relacionadas ao perfil Entusiasta da Tecnologia
+        adventure_responses = [7, 9, 14, 15, 19]  # Índices de perguntas relacionadas ao perfil Aventureiro do Asfalto
 
-        if count_yes >= 15:
-            profile = "Apaixonado por Carros"
-            category = "Carro Esportivo"
-            reason = "Seu alto número de respostas 'Sim' indica uma preferência por carros com desempenho e estilo esportivos."
-        elif count_yes >= 12:
-            profile = "Entusiasta da Tecnologia"
-            category = "Híbrido ou Elétrico"
-            reason = "Suas respostas indicam uma preferência por veículos com tecnologia avançada e eficiência energética."
-        elif count_yes >= 9:
-            profile = "Prático e Econômico"
-            category = "Compacto ou Sedan"
-            reason = "Você valoriza aspectos práticos e econômicos, como economia de combustível e baixo custo de manutenção."
-        elif count_yes >= 6:
+        count_eco = sum(1 for idx, response in self.responses.items() if idx in eco_responses and response == "sim")
+        count_tech = sum(1 for idx, response in self.responses.items() if idx in tech_responses and response == "sim")
+        count_adventure = sum(1 for idx, response in self.responses.items() if idx in adventure_responses and response == "sim")
+
+        if count_eco > count_tech and count_eco > count_adventure:
             profile = "Eco-Consciente"
-            category = "Carro Elétrico ou Híbrido"
-            reason = "Suas respostas indicam uma preocupação com o meio ambiente e uma preferência por veículos de baixa emissão."
-        elif count_yes >= 3:
+            category = "Híbrido ou Elétrico"
+            reason = "Suas respostas indicam uma preferência por veículos \n com tecnologia avançada e eficiência energética."
+        elif count_tech > count_eco and count_tech > count_adventure:
+            profile = "Entusiasta da Tecnologia"
+            category = "Carros esportivos"
+            reason = "Suas respostas indicam um Carros esportivos frequentemente vêm equipados com tecnologias avançadas, \n tanto no desempenho quanto no conforto e segurança. O comprador desse tipo de carro valoriza e busca essas inovações.."
+        elif count_adventure > count_eco and count_adventure > count_tech:
             profile = "Aventureiro do Asfalto"
             category = "SUV ou Picape"
-            reason = "Você demonstra uma preferência por veículos robustos e versáteis, adequados para diferentes tipos de terreno."
+            reason = "Você demonstra uma preferência por veículos robustos e versáteis, \n adequados para diferentes tipos de terreno."
         else:
-            profile = "Versátil e Familiar"
-            category = "Minivan ou Crossover"
-            reason = "Suas respostas sugerem uma preferência por veículos espaçosos e versáteis, ideais para famílias e viagens." 
-            
+            profile = "Perfil Diversificado"
+            category = "Vários tipos de veículos"
+            reason = "Suas respostas sugerem um interesse variado em diferentes \n tipos de veículos e estilos de condução."
+
         self.show_result(profile, category, reason)
 
     def show_result(self, profile, category, reason):
@@ -105,18 +109,8 @@ class QuestionnaireApp:
         self.show_gabarito()
 
     def show_gabarito(self):
-        gabarito_window = ctk.CTk()
-        gabarito_window.title("Gabarito do Questionário")
-        gabarito_window.geometry("600x400")
-        gabarito_window.configure(bg="#2C3E50")
-
-        gabarito_label = ctk.CTkLabel(gabarito_window, text="Gabarito do Questionário", font=("Helvetica", 18), text_color="white", bg_color="#2C3E50")
-        gabarito_label.pack(pady=20)
-
-        gabarito_text = ctk.CTkLabel(gabarito_window, text=self.get_gabarito_text(), font=("Helvetica", 12), text_color="white", bg_color="#2C3E50", justify="left", wraplength=500)
-        gabarito_text.pack(padx=20, pady=10)
-
-        gabarito_window.mainloop()
+        gabarito_text = self.get_gabarito_text()
+        self.gabarito_text.configure(text=gabarito_text)
 
     def get_gabarito_text(self):
         gabarito_text = ""
@@ -125,13 +119,49 @@ class QuestionnaireApp:
             response_text = f"Resposta: {self.responses.get(idx, 'Não respondida')}"
             reason_text = ""
 
-            # Adicionar motivo para as respostas
             if self.responses.get(idx) == "sim":
                 if idx == 0:
                     reason_text = "Você demonstra uma preocupação com os custos de combustível ao escolher um veículo urbano."
                 elif idx == 1:
                     reason_text = "Você valoriza a praticidade ao preferir um veículo compacto para estacionamento na cidade."
-                # Adicione mais motivos para as respostas 'sim' conforme necessário
+                elif idx == 2:
+                    reason_text = "Você se preocupa com as emissões de carbono e o impacto ambiental."
+                elif idx == 3:
+                    reason_text = "Você valoriza espaço e conforto para a família."
+                elif idx == 4:
+                    reason_text = "Você quer economizar combustível em viagens familiares."
+                elif idx == 5:
+                    reason_text = "Você valoriza tecnologia avançada de segurança."
+                elif idx == 6:
+                    reason_text = "Você valoriza a tração nas quatro rodas para terrenos difíceis."
+                elif idx == 7:
+                    reason_text = "Você valoriza a eficiência de combustível em viagens de aventura."
+                elif idx == 8:
+                    reason_text = "Você prefere SUVs com motor Diesel para maior torque."
+                elif idx == 9:
+                    reason_text = "Você quer um veículo com baixo custo de manutenção."
+                elif idx == 10:
+                    reason_text = "Você prefere um design esportivo e chamativo."
+                elif idx == 11:
+                    reason_text = "Você prioriza tecnologia e recursos de entretenimento."
+                elif idx == 12:
+                    reason_text = "Você precisa de capacidade de reboque para cargas pesadas."
+                elif idx == 13:
+                    reason_text = "Você aprecia um sistema de som premium."
+                elif idx == 14:
+                    reason_text = "Você valoriza a dirigibilidade esportiva."
+                elif idx == 15:
+                    reason_text = "Você costuma fazer viagens longas com frequência."
+                elif idx == 16:
+                    reason_text = "Você prefere transmissão manual."
+                elif idx == 17:
+                    reason_text = "Você gostaria de um carro com teto solar."
+                elif idx == 18:
+                    reason_text = "Você precisa de muito espaço de carga."
+                elif idx == 19:
+                    reason_text = "Você costuma dirigir em estradas não pavimentadas."
+                elif idx == 20:
+                    reason_text = "Você se preocupa com a eficiência energética do veículo."
 
             gabarito_text += f"{question_text}\n{response_text}\n{reason_text}\n\n"
         return gabarito_text
